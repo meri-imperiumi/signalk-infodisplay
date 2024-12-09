@@ -11,8 +11,11 @@ function switchState(state) {
   const current = document.getElementById('current');
   const next = document.getElementById('next');
   const stateUrl = getUrlForState(state);
-  if (next.getAttribute('src') === stateUrl) {
+  if (current.getAttribute('src') === stateUrl) {
     // Already open!
+    return;
+  }
+  if (next.getAttribute('src') === stateUrl) {
     next.id = 'current';
     current.id = 'next';
     return;
