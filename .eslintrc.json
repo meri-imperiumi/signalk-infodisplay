@@ -1,0 +1,11 @@
+{
+  "extends": "airbnb-base",
+   "overrides": [
+     {
+        "files": ["public/*.js"],
+        "env": {
+          "browser": true
+        }
+     }
+   ]
+}

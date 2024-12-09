@@ -1,0 +1,37 @@
+{
+  "name": "@meri-imperiumi/signalk-infodisplay",
+  "version": "1.0.0",
+  "description": "Context-aware information display for Signal K",
+  "main": "index.js",
+  "scripts": {
+    "lint": "eslint .",
+    "test": "npm run lint"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/meri-imperiumi/signalk-infodisplay.git"
+  },
+  "signalk": {
+    "appIcon": "./icon.png",
+    "displayName": "Information Display"
+  },
+  "keywords": [
+    "signalk-node-server-plugin",
+    "signalk-webapp",
+    "signalk-category-instruments"
+  ],
+  "author": "Henri Bergius <henri.bergius@iki.fi>",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "bugs": {
+    "url": "https://github.com/meri-imperiumi/signalk-infodisplay/issues"
+  },
+  "homepage": "https://github.com/meri-imperiumi/signalk-infodisplay#readme",
+  "devDependencies": {
+    "eslint": "^8.57.1",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.31.0"
+  }
+}
