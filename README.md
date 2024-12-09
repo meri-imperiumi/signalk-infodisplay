@@ -7,6 +7,8 @@ This is an adaptation of the [c-base infoscreens system](https://github.com/c-ba
 
 ## Usage
 
+Install this plugin and the [signalk-autostate plugin](https://github.com/meri-imperiumi/signalk-autostate#readme).
+
 Configure the plugin and set URLs for the different navigation states:
 <img width="735" alt="Screenshot 2024-12-09 at 13 38 00" src="https://github.com/user-attachments/assets/b61fe6d4-e47b-49bb-8a2e-5aeea649b769">
 
