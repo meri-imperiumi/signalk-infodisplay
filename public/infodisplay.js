@@ -1,4 +1,5 @@
 const stateUrls = {};
+const notifications = {};
 
 function getUrlForState(state) {
   if (!stateUrls[state]) {
@@ -39,6 +40,41 @@ function switchState(state) {
   next.setAttribute('src', stateUrl);
 }
 
+function isNotificationVisual(notification) {
+  if (notification.method && notification.method.indexOf('visual') === -1) {
+    return false;
+  }
+  if (!notification.method && notification.state === 'normal') {
+    return false;
+  }
+  return true;
+}
+
+function handleNotification(path, notification) {
+  let element;
+  if (notifications[path]) {
+    // We have an element for this
+    element = notifications[path];
+  } else if (!isNotificationVisual(notification)) {
+    // No element, but the alert doesn't have a visual component. We can skip this one
+    return;
+  } else {
+    // New notification, create element
+    const body = document.querySelector('body');
+    element = document.createElement('dialog');
+    notifications[path] = element;
+    body.appendChild(element);
+  }
+  element.className = notification.state;
+  element.innerHTML = `<p>${notification.message}</p>`;
+  if (isNotificationVisual(notification)) {
+    element.show();
+  } else {
+    element.close();
+    // TODO: Destroy element?
+  }
+}
+
 function getConfig(callback) {
   fetch('/signalk/v2/api/infodisplay')
     .then((res) => res.json())
@@ -59,6 +95,10 @@ function connect() {
         {
           path: 'navigation.state',
         },
+        {
+          path: 'notifications.*',
+          policy: 'instant',
+        },
       ],
     }));
   });
@@ -74,6 +114,10 @@ function connect() {
       u.values.forEach((v) => {
         if (v.path === 'navigation.state') {
           switchState(v.value);
+          return;
+        }
+        if (v.path.indexOf('notifications.') === 0) {
+          handleNotification(v.path, v.value);
         }
       });
     });
