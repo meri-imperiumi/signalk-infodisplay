@@ -13,3 +13,12 @@ Configure the plugin and set URLs for the different navigation states:
 <img width="735" alt="Screenshot 2024-12-09 at 13 38 00" src="https://github.com/user-attachments/assets/b61fe6d4-e47b-49bb-8a2e-5aeea649b769">
 
 Point your kiosk browser to the webapp URL supplied by this plugin (`/@meri-imperiumi/signalk-infodisplay/`) on your Signal K server.
+
+## Changes
+
+* 1.1.0 (2024-12-10)
+  - Show Signal K notifications visually on screen
+* 1.0.1 (2024-12-09)
+  - Fixed unnecessary reloads when same state message is received again
+* 1.0.0 (2024-12-09)
+  - Initial release
