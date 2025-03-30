@@ -41,10 +41,21 @@ function switchState(state) {
 }
 
 function isNotificationVisual(notification) {
+  if (!notification) {
+    return false;
+  }
+  if (!notification.method) {
+    return false;
+  }
   if (notification.method && notification.method.indexOf('visual') === -1) {
     return false;
   }
   if (!notification.method && notification.state === 'normal') {
+    return false;
+  }
+  // FIXME: This is hacky but we really don't need a constant "anchor alarm is normal"
+  // visual notification
+  if (notification.message === 'Anchor Alarm - Normal' && notification.state === 'normal') {
     return false;
   }
   return true;
