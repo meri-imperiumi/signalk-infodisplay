@@ -16,6 +16,9 @@ Point your kiosk browser to the webapp URL supplied by this plugin (`/@meri-impe
 
 ## Changes
 
+* 1.2.0 (2025-03-30)
+  - Safety for incorrectly formatted notifications
+  - Hiding the persistent but not useful _Anchor Alarm - Normal_ visual notification when anchored
 * 1.1.0 (2024-12-10)
   - Show Signal K notifications visually on screen
 * 1.0.1 (2024-12-09)
