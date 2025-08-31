@@ -50,7 +50,7 @@ function isNotificationVisual(notification) {
   if (notification.method && notification.method.indexOf('visual') === -1) {
     return false;
   }
-  if (!notification.method && notification.state === 'normal') {
+  if (!notification.method && (notification.state === 'normal' || notification.state === 'nominal')) {
     return false;
   }
   // FIXME: This is hacky but we really don't need a constant "anchor alarm is normal"

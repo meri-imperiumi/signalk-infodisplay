@@ -16,6 +16,8 @@ Point your kiosk browser to the webapp URL supplied by this plugin (`/@meri-impe
 
 ## Changes
 
+* 1.2.1 (2025-08-31)
+  - Hiding non-visual notifications of state "nominal"
 * 1.2.0 (2025-03-30)
   - Safety for incorrectly formatted notifications
   - Hiding the persistent but not useful _Anchor Alarm - Normal_ visual notification when anchored
