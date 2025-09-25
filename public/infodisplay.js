@@ -76,8 +76,10 @@ function handleNotification(path, notification) {
     notifications[path] = element;
     body.appendChild(element);
   }
-  element.className = notification.state;
-  element.innerHTML = `<p>${notification.message}</p>`;
+  if (notification && notification.state) {
+    element.className = notification.state;
+    element.innerHTML = `<p>${notification.message}</p>`;
+  }
   if (isNotificationVisual(notification)) {
     element.show();
   } else {
