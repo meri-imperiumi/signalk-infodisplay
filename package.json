@@ -1,6 +1,6 @@
 {
   "name": "@meri-imperiumi/signalk-infodisplay",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "Context-aware information display for Signal K",
   "main": "index.js",
   "scripts": {
