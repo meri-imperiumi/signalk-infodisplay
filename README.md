@@ -16,6 +16,9 @@ Point your kiosk browser to the webapp URL supplied by this plugin (`/@meri-impe
 
 ## Changes
 
+* 1.2.3 (2025-09-30)
+  - Hiding all "nominal" notifications until Signal K allows not having "visual" set
+  - Added colors for notification types of `warning` and `nominal`
 * 1.2.2 (2025-09-25)
   - Added safety for notifications with empty payload
 * 1.2.1 (2025-08-31)
