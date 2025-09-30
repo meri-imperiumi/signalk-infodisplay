@@ -53,6 +53,10 @@ function isNotificationVisual(notification) {
   if (!notification.method && (notification.state === 'normal' || notification.state === 'nominal')) {
     return false;
   }
+  // FIXME: It seems right now with meta zones you can't have non-visual nominal states
+  if (notification.state === 'nominal') {
+    return false;
+  }
   // FIXME: This is hacky but we really don't need a constant "anchor alarm is normal"
   // visual notification
   if (notification.message === 'Anchor Alarm - Normal' && notification.state === 'normal') {
