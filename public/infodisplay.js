@@ -88,7 +88,8 @@ function handleNotification(path, notification) {
     element.show();
   } else {
     element.close();
-    // TODO: Destroy element?
+    element.remove();
+    delete notifications[path];
   }
 }
 
