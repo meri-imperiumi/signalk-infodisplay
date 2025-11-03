@@ -16,6 +16,8 @@ Point your kiosk browser to the webapp URL supplied by this plugin (`/@meri-impe
 
 ## Changes
 
+* 1.2.5 (2024-11-03)
+  - Notification elements take a little bit less space now
 * 1.2.4 (2025-10-06)
   - Actually remove the notification elments instead of hiding them
 * 1.2.3 (2025-09-30)
