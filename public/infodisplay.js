@@ -111,6 +111,16 @@ function getConfig(callback) {
 function connect() {
   const socket = new WebSocket(`${(window.location.protocol === 'https:' ? 'wss' : 'ws')}://${window.location.host}/signalk/v1/stream?subscribe=none&sendCachedValues=true`);
   socket.addEventListener('open', () => {
+    // Start by clearing old notifications
+    if (notifications) {
+      Object.keys(notifications).forEach((path) => {
+        const element = notifications[path];
+        element.close();
+        element.remove();
+        delete notifications[path];
+      });
+    }
+
     socket.send(JSON.stringify({
       context: 'vessels.self',
       subscribe: [
