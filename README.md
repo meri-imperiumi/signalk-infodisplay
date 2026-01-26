@@ -16,7 +16,10 @@ Point your kiosk browser to the webapp URL supplied by this plugin (`/@meri-impe
 
 ## Changes
 
-* 1.2.5 (2024-11-03)
+* 1.2.6 (2026-01-26)
+  - _Value is within normal range_ notifications are not shown
+  - Notifications are cleared when reconnecting to Signal K
+* 1.2.5 (2025-11-03)
   - Notification elements take a little bit less space now
 * 1.2.4 (2025-10-06)
   - Actually remove the notification elments instead of hiding them
