@@ -16,6 +16,8 @@ Point your kiosk browser to the webapp URL supplied by this plugin (`/@meri-impe
 
 ## Changes
 
+* 1.2.7 (2026-06-16)
+  - Improvements for Signal K app store
 * 1.2.6 (2026-01-26)
   - _Value is within normal range_ notifications are not shown
   - Notifications are cleared when reconnecting to Signal K
