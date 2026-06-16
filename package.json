@@ -13,7 +13,16 @@
   },
   "signalk": {
     "appIcon": "./icon.png",
-    "displayName": "Information Display"
+    "displayName": "Information Display",
+    "requires": [
+      "@meri-imperiumi/signalk-autostate"
+    ],
+    "recommends": [
+      "signalk-grafana"
+    ],
+    "screenshots": [
+      "./public/screenshot.png"
+    ]
   },
   "keywords": [
     "signalk-node-server-plugin",
