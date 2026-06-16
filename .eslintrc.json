@@ -1,11 +1,14 @@
 {
   "extends": "airbnb-base",
-   "overrides": [
-     {
-        "files": ["public/*.js"],
-        "env": {
-          "browser": true
-        }
-     }
-   ]
+  "overrides": [
+    {
+      "files": ["public/*.js"],
+      "env": {
+        "browser": true
+      }
+    }
+  ],
+  "rules": {
+    "linebreak-style": "warn"
+  }
 }
