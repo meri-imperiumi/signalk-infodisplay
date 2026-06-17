@@ -16,28 +16,4 @@ Point your kiosk browser to the webapp URL supplied by this plugin (`/@meri-impe
 
 ## Changes
 
-* 1.2.7 (2026-06-16)
-  - Improvements for Signal K app store
-* 1.2.6 (2026-01-26)
-  - _Value is within normal range_ notifications are not shown
-  - Notifications are cleared when reconnecting to Signal K
-* 1.2.5 (2025-11-03)
-  - Notification elements take a little bit less space now
-* 1.2.4 (2025-10-06)
-  - Actually remove the notification elments instead of hiding them
-* 1.2.3 (2025-09-30)
-  - Hiding all "nominal" notifications until Signal K allows not having "visual" set
-  - Added colors for notification types of `warning` and `nominal`
-* 1.2.2 (2025-09-25)
-  - Added safety for notifications with empty payload
-* 1.2.1 (2025-08-31)
-  - Hiding non-visual notifications of state "nominal"
-* 1.2.0 (2025-03-30)
-  - Safety for incorrectly formatted notifications
-  - Hiding the persistent but not useful _Anchor Alarm - Normal_ visual notification when anchored
-* 1.1.0 (2024-12-10)
-  - Show Signal K notifications visually on screen
-* 1.0.1 (2024-12-09)
-  - Fixed unnecessary reloads when same state message is received again
-* 1.0.0 (2024-12-09)
-  - Initial release
+See [Changelog](CHANGELOG.md)
