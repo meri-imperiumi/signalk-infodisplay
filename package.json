@@ -1,7 +1,7 @@
 {
   "name": "@meri-imperiumi/signalk-infodisplay",
-  "version": "1.2.7",
-  "description": "Context-aware information display for Signal K",
+  "version": "1.2.8",
+  "description": "Context-aware dashboard loader for Signal K",
   "main": "index.js",
   "scripts": {
     "lint": "eslint .",
@@ -13,7 +13,7 @@
   },
   "signalk": {
     "appIcon": "./icon.png",
-    "displayName": "Information Display",
+    "displayName": "Contextual Dashboard Loader",
     "requires": [
       "@meri-imperiumi/signalk-autostate"
     ],

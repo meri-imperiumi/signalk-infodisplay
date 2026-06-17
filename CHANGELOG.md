@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.2.8] - 2026-06-16
+### Changed
+- Better app icon
+
 ## [1.2.7] - 2026-06-16
 ### Changed
 - Improvements for Signal K app store
