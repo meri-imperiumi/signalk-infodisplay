@@ -1,4 +1,7 @@
 # Changelog
+## [Unreleased]
+### Changed
+- Hiding the unnecessary _Watching_ notification from Hoeken's Anchor Alarm
 
 ## [1.2.8] - 2026-06-16
 ### Changed
