@@ -62,6 +62,9 @@ function isNotificationVisual(notification) {
   if (notification.message === 'Anchor Alarm - Normal' && notification.state === 'normal') {
     return false;
   }
+  if (notification.message === 'Watching' && notification.state === 'normal') {
+    return false;
+  }
   // FIXME: Similarly hacky, but Signal K 2.20 forces visual for these
   if (notification.message === 'Value is within normal range' && notification.state === 'normal') {
     return false;
