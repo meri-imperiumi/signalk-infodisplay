@@ -1,5 +1,13 @@
 # Changelog
 ## [Unreleased]
+### Added
+- Configurable notification denylist: a list of Signal K notification
+  paths (with `*`/`**` glob wildcards) to suppress from the on-screen
+  overlay. Use this to hide alerts that are already surfaced by a
+  status-tiles tile on the displayed dashboard, so the overlay isn't
+  showing the same alert twice. `*` matches within one dot-segment;
+  `**` spans segments.
+
 ### Changed
 - Restyled the on-screen notifications to match the HUD aesthetic of
   `../signalk-status-tiles`: dark hue-tinted emissive panels with angular

@@ -70,3 +70,69 @@ test('notificationTag is silent for non-alarm states, loud for alarms', () => {
   assert.equal(notificationTag('alarm'), 'ALARM');
   assert.equal(notificationTag('emergency'), 'EMERGENCY');
 });
+
+test('matchesNotificationPattern: exact path, no wildcard', () => {
+  const { matchesNotificationPattern } = loadHelpers();
+  const p = 'notifications.electrical.batteries.bank1.stateOfCharge';
+  assert.equal(matchesNotificationPattern(p, p), true);
+  assert.equal(matchesNotificationPattern(p, 'notifications.electrical.batteries.bank2.stateOfCharge'), false);
+});
+
+test('matchesNotificationPattern: `*` stays within one dot-segment', () => {
+  const { matchesNotificationPattern } = loadHelpers();
+  // Any single segment (bank name) between batteries. and .temperature.
+  const pat = 'notifications.electrical.batteries.*.temperature';
+  assert.equal(matchesNotificationPattern('notifications.electrical.batteries.bank1.temperature', pat), true);
+  assert.equal(matchesNotificationPattern('notifications.electrical.batteries.bank2.temperature', pat), true);
+  // `*` does NOT span dots: two segments between batteries and temperature.
+  assert.equal(matchesNotificationPattern('notifications.electrical.batteries.bank1.cell1.temperature', pat), false);
+  // `*` matches zero or more chars within its segment (so a bare segment
+  // between the dots is fine), but the dots on either side are required.
+  assert.equal(matchesNotificationPattern('notifications.electrical.batteries..temperature', pat), true);
+});
+
+test('matchesNotificationPattern: `*` within a segment (partial)', () => {
+  const { matchesNotificationPattern } = loadHelpers();
+  const pat = 'notifications.electrical.batteries.bank*.stateOfCharge';
+  assert.equal(matchesNotificationPattern('notifications.electrical.batteries.bank1.stateOfCharge', pat), true);
+  assert.equal(matchesNotificationPattern('notifications.electrical.batteries.bank12.stateOfCharge', pat), true);
+  assert.equal(matchesNotificationPattern('notifications.electrical.batteries.inverter.stateOfCharge', pat), false);
+});
+
+test('matchesNotificationPattern: `**` spans segments', () => {
+  const { matchesNotificationPattern } = loadHelpers();
+  // Trailing `**` matches anything at any depth under the prefix.
+  const tail = 'notifications.electrical.batteries.**';
+  assert.equal(matchesNotificationPattern('notifications.electrical.batteries.bank1', tail), true);
+  assert.equal(matchesNotificationPattern('notifications.electrical.batteries.bank1.cell1.temperature', tail), true);
+  // `**` is zero-or-more, so the bare prefix matches too.
+  assert.equal(matchesNotificationPattern('notifications.electrical.batteries', tail), true);
+  assert.equal(matchesNotificationPattern('notifications.electrical.charger.state', tail), false);
+  // `**` in the middle spans an arbitrary run of segments.
+  const mid = 'notifications.**.temperature';
+  assert.equal(matchesNotificationPattern('notifications.temperature', mid), true);
+  assert.equal(matchesNotificationPattern('notifications.electrical.batteries.bank1.temperature', mid), true);
+  assert.equal(matchesNotificationPattern('notifications.electrical.batteries.bank1.voltage', mid), false);
+});
+
+test('matchesNotificationPattern: `*` alone is one segment, `**` alone is anything', () => {
+  const { matchesNotificationPattern } = loadHelpers();
+  assert.equal(matchesNotificationPattern('x', '*'), true);
+  assert.equal(matchesNotificationPattern('x.y', '*'), false);
+  assert.equal(matchesNotificationPattern('anything.at.all', '**'), true);
+  assert.equal(matchesNotificationPattern('', '**'), true);
+});
+
+test('matchesNotificationPattern: pattern must match the whole path', () => {
+  const { matchesNotificationPattern } = loadHelpers();
+  // No partial matching: a prefix pattern doesn't match a longer path.
+  assert.equal(matchesNotificationPattern('notifications.electrical.batteries', 'notifications.electrical'), false);
+  assert.equal(matchesNotificationPattern('notifications.electrical.batteries', 'notifications.electrical.batteries'), true);
+});
+
+test('matchesNotificationPattern: empty/undefined pattern never matches', () => {
+  const { matchesNotificationPattern } = loadHelpers();
+  assert.equal(matchesNotificationPattern('notifications.x', ''), false);
+  assert.equal(matchesNotificationPattern('notifications.x', undefined), false);
+  assert.equal(matchesNotificationPattern('notifications.x', null), false);
+});

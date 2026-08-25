@@ -18,7 +18,8 @@
       "@meri-imperiumi/signalk-autostate"
     ],
     "recommends": [
-      "signalk-grafana"
+      "signalk-grafana",
+      "@meri-imperiumi/signalk-status-tiles"
     ],
     "screenshots": [
       "./public/screenshot.png",

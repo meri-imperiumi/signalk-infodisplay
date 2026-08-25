@@ -12,10 +12,16 @@ module.exports = (app) => {
           stateUrls[u.state] = u.url;
         });
       }
-      // Register API endpoint for public-readable URL config
+      // Patterns the webapp should never render as notifications (e.g.
+      // alerts already shown by a status-tiles tile). Glob-style: `*`
+      // matches within one dot-segment, `**` spans segments.
+      const denylist = (settings && Array.isArray(settings.notificationDenylist))
+        ? settings.notificationDenylist.filter((p) => typeof p === 'string' && p.length > 0)
+        : [];
+      // Register API endpoint for public-readable config
       app.get('/signalk/v2/api/infodisplay', (req, res) => {
         res.status(200);
-        res.json(stateUrls);
+        res.json({ stateUrls, notificationDenylist: denylist });
       });
     },
     stop: () => {
@@ -71,6 +77,15 @@ module.exports = (app) => {
                 format: 'uri',
               },
             },
+          },
+        },
+        notificationDenylist: {
+          type: 'array',
+          default: [],
+          title: 'Notifications to never show',
+          description: 'Signal K notification paths (e.g. notifications.electrical.batteries.bank1.stateOfCharge) to suppress from the on-screen overlay. `*` matches within one dot-segment; `**` spans segments. Use this to hide alerts that are already surfaced by a status-tiles tile on the displayed dashboard.',
+          items: {
+            type: 'string',
           },
         },
       },

@@ -1,5 +1,62 @@
 const stateUrls = {};
 const notifications = {};
+let notificationDenylist = [];
+
+/*
+ * Glob match for a notification path against a pattern. Semantics:
+ *   - `*`  matches within one dot-segment (zero or more non-dot chars)
+ *   - `**` matches zero or more whole segments (so `a.**` matches `a`,
+ *     `a.b`, `a.b.c`; `**` alone matches anything, including empty)
+ * Dots are literal segment separators and the pattern must match the
+ * whole path. Lets a denylist entry target a category across instances,
+ * e.g. `notifications.electrical.batteries.**` (any depth) or
+ * `notifications.electrical.batteries.*.temperature` (any bank, one
+ * segment, between batteries and temperature). Exported for tests.
+ */
+function matchesNotificationPattern(path, pattern) {
+  if (!pattern) return false;
+  // Split into segment tokens on literal dots. Each token is either
+  // `**` (zero+ segments), contains `*` (one segment, in-segment
+  // wildcards), or is a literal segment.
+  const tokens = pattern.split('.');
+  // Build a regex segment by segment, so a `**` token can absorb the
+  // dot separators on either side (matching zero segments = no dot).
+  let rx = '^';
+  for (let i = 0; i < tokens.length; i += 1) {
+    const tok = tokens[i];
+    const isDouble = tok === '**';
+    // The separator dot before this token is optional when either the
+    // previous token was `**` (it may have matched zero segments) or
+    // this token is `**` (it may match zero segments up front). It's a
+    // required literal dot otherwise.
+    const prevDouble = i > 0 && tokens[i - 1] === '**';
+    const sepOptional = prevDouble || isDouble;
+    let sep;
+    if (i === 0) {
+      sep = '';
+    } else if (sepOptional) {
+      sep = '\\.?';
+    } else {
+      sep = '\\.';
+    }
+    rx += sep;
+    if (isDouble) {
+      // `**` = zero or more whole segments: any run of characters,
+      // dots included (including empty).
+      rx += '.*';
+    } else {
+      // Literal or single-`*` segment. Escape regex metacharacters in the
+      // literal parts, then turn `*` into a within-segment wildcard.
+      rx += tok.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '[^.]*');
+    }
+  }
+  rx += '$';
+  return new RegExp(rx).test(path);
+}
+
+function isNotificationDenied(path) {
+  return notificationDenylist.some((p) => matchesNotificationPattern(path, p));
+}
 
 /*
  * Maps a Signal K notification state onto a CSS class. The Signal K
@@ -44,6 +101,7 @@ function notificationTag(state) {
 if (typeof window !== 'undefined') {
   window.notificationClass = notificationClass;
   window.notificationTag = notificationTag;
+  window.matchesNotificationPattern = matchesNotificationPattern;
 }
 
 function getUrlForState(state) {
@@ -118,6 +176,18 @@ function isNotificationVisual(notification) {
 }
 
 function handleNotification(path, notification) {
+  // Denylist suppresses a notification outright: the user has said they
+  // don't want to see it (typically because a status-tiles tile already
+  // surfaces it). Applies before the visual check, so a denied path never
+  // creates an element. If a live element exists from before the denylist
+  // was (re)loaded, tear it down so suppression takes effect immediately.
+  if (isNotificationDenied(path)) {
+    if (notifications[path]) {
+      notifications[path].remove();
+      delete notifications[path];
+    }
+    return;
+  }
   let element;
   if (notifications[path]) {
     // We have an element for this
@@ -159,8 +229,22 @@ function getConfig(callback) {
   fetch('/signalk/v2/api/infodisplay')
     .then((res) => res.json())
     .then((config) => {
-      Object.keys(config).forEach((state) => {
-        stateUrls[state] = config[state];
+      const urls = config.stateUrls || config;
+      Object.keys(urls).forEach((state) => {
+        stateUrls[state] = urls[state];
+      });
+      notificationDenylist = Array.isArray(config.notificationDenylist)
+        ? config.notificationDenylist
+          .filter((p) => typeof p === 'string' && p.length > 0)
+        : [];
+      // Apply the (possibly changed) denylist to anything already on
+      // screen: a newly-denied path vanishes immediately rather than
+      // lingering until the next notification update for it.
+      Object.keys(notifications).forEach((p) => {
+        if (isNotificationDenied(p)) {
+          notifications[p].remove();
+          delete notifications[p];
+        }
       });
       callback();
     });
