@@ -1,5 +1,5 @@
 # Changelog
-## [Unreleased]
+## [1.3.0] - 2026-08-24
 ### Added
 - Configurable notification denylist: a list of Signal K notification
   paths (with `*`/`**` glob wildcards) to suppress from the on-screen
