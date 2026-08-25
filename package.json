@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "lint": "eslint .",
-    "test": "npm run lint"
+    "test": "npm run lint && node --test --test-force-exit \"test/*.test.js\""
   },
   "repository": {
     "type": "git",

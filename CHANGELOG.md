@@ -1,6 +1,15 @@
 # Changelog
 ## [Unreleased]
 ### Changed
+- Restyled the on-screen notifications to match the HUD aesthetic of
+  `../signalk-status-tiles`: dark hue-tinted emissive panels with angular
+  corners, a condensed uppercase severity tag, and a fixed bottom-right
+  stack. Notification states now map onto the same green/amber/red hue
+  ramp as the status tiles (the old blue default is gone), and only
+  warn/alarm/emergency pulse — alert/normal/nominal stay steady.
+  Each Signal K notification state (alert, warn, alarm, emergency) now
+  has its own distinct color and tag word, rather than alert and warn
+  both rendering as amber "WARN".
 - Hiding the unnecessary _Watching_ notification from Hoeken's Anchor Alarm
 
 ## [1.2.8] - 2026-06-16

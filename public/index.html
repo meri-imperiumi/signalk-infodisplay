@@ -33,40 +33,109 @@
       iframe#next {
         opacity: 0;
       }
-      dialog[open] {
+      /*
+        Notifications overlay (SPEC: same HUD language as
+        ../signalk-status-tiles). A fixed bottom-right stack of emissive
+        panels: dark hue-tinted fill, hue-tinted border + glow, angular
+        clip-path corners, condensed uppercase severity tag. Only
+        warn/alarm/emergency pulse; alert/normal/nominal stay steady
+        (alert is below the warn rung, like status-tiles' green). Colors
+        map onto the status-tiles hue ramp — green 130, alert 84,
+        amber 38, red 0 — so the two never disagree on meaning.
+      */
+      #notifications {
+        position: fixed;
+        bottom: 1.6vh;
+        right: 1.6vw;
+        display: flex;
+        flex-direction: column;
+        gap: 1.2vh;
+        max-width: 38vw;
+        z-index: 10;
+        pointer-events: none;
+        font-family: "Eurostile", "Bank Gothic", "Oswald", system-ui, sans-serif;
+      }
+      .notification {
+        /* Defensive base hue; in practice the JS always assigns a
+         * normal/nominal/warn/alarm/emergency class, so this only shows
+         * for the brief moment before a state is set. */
+        --hue: 210;
         position: relative;
-        margin-right: 0em;
-        height: 10vh;
-        font-family: sans-serif;
-        font-size: 6vh;
-        background-color: rgb(87, 148, 242);
-        border: none;
-        padding: 2vh;
         box-sizing: border-box;
-        border-bottom-left-radius: 1vh;
-        border-top-left-radius: 1vh;
+        padding: 1.8vh 2.2vw 1.8vh 1.6vw;
+        color: hsl(var(--hue) 85% 80%);
+        background: hsl(var(--hue) 55% 10%);
+        border: 1px solid hsl(var(--hue) 70% 45%);
+        box-shadow:
+          inset 0 0 0 1px hsl(var(--hue) 70% 35% / 0.35),
+          0 0 3vh hsl(var(--hue) 80% 40% / 0.22);
+        /* Angular corner, matching the status-tiles clip-path idiom. */
+        clip-path: polygon(
+          0 0, calc(100% - 2vh) 0, 100% 2vh, 100% 100%,
+          2vh 100%, 0 calc(100% - 2vh)
+        );
+        opacity: 1;
+        transition: opacity 0.3s ease-in-out;
       }
-      dialog.nominal {
-        background-color: rgb(115, 191, 105);
+      .notification.normal,
+      .notification.nominal {
+        --hue: 130;
       }
-      dialog.warning,
-      dialog.warn {
-        background-color: rgb(250, 222, 42);
+      /*
+        Signal K's ladder is nominal -> alert -> warn -> alarm ->
+        emergency. `alert` is "heads up" — below a warning — so it gets
+        its own hue between green and amber (and no pulse), distinct from
+        `warn`'s amber. Mirrors status-tiles, which maps alert to green;
+        here we can't go fully green (the overlay only exists to surface
+        things worth seeing), but alert must read as milder than warn.
+      */
+      .notification.alert {
+        --hue: 84;
       }
-      dialog.alarm {
-        background-color: rgb(255, 152, 48);
+      .notification.warn {
+        --hue: 38;
+        animation: ntf-pulse 1.6s ease-in-out infinite;
       }
-      dialog.emergency {
-        background-color: rgb(242, 73, 92);
+      .notification.alarm {
+        --hue: 0;
+        animation: ntf-pulse 1.1s ease-in-out infinite;
       }
-      dialog p {
-        margin: 0 auto;
-        text-align: center;
+      .notification.emergency {
+        --hue: 0;
+        animation: ntf-pulse 0.7s ease-in-out infinite;
+      }
+      @keyframes ntf-pulse {
+        0%, 100% {
+          box-shadow:
+            inset 0 0 0 1px hsl(var(--hue) 70% 40% / 0.4),
+            0 0 2.5vh hsl(var(--hue) 85% 45% / 0.25);
+        }
+        50% {
+          box-shadow:
+            inset 0 0 0 1px hsl(var(--hue) 80% 55% / 0.6),
+            0 0 5vh hsl(var(--hue) 90% 55% / 0.45);
+        }
+      }
+      .ntf-tag {
+        font-size: 1.7vh;
+        font-weight: 700;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: hsl(var(--hue) 90% 72%);
+        margin-bottom: 0.4vh;
+      }
+      .ntf-msg {
+        font-size: 2.6vh;
+        line-height: 1.15;
+        letter-spacing: 0.04em;
+        color: hsl(var(--hue) 30% 92%);
+        overflow-wrap: anywhere;
       }
     </style>
   </head>
   <body>
     <iframe allow="autoplay,fullscreen" id="current"></iframe>
     <iframe allow="autoplay,fullscreen" id="next"></iframe>
+    <div id="notifications"></div>
   </body>
 </html>

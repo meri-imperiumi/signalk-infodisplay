@@ -1,6 +1,51 @@
 const stateUrls = {};
 const notifications = {};
 
+/*
+ * Maps a Signal K notification state onto a CSS class. The Signal K
+ * ladder is nominal -> alert -> warn -> alarm -> emergency; we keep all
+ * five distinct except the `warning` spelling collapses to `warn`.
+ * `alert` is "heads up" — below a warning — so it gets its own class
+ * (and its own hue, between green and amber) rather than being folded
+ * into `warn`. An empty/unknown state falls back to `normal` (green)
+ * rather than asserting a color it has no right to. Exported for tests.
+ */
+function notificationClass(state) {
+  switch (state) {
+    case 'normal':
+      return 'normal';
+    case 'nominal':
+      return 'nominal';
+    case 'alert':
+      return 'alert';
+    case 'warn':
+    case 'warning':
+      return 'warn';
+    case 'alarm':
+      return 'alarm';
+    case 'emergency':
+      return 'emergency';
+    default:
+      return 'normal';
+  }
+}
+
+/* Uppercase severity word for the tag line. Empty for normal/nominal
+ * (no judgment worth shouting) and for the neutral fallback. */
+function notificationTag(state) {
+  const cls = notificationClass(state);
+  if (cls === 'normal' || cls === 'nominal') {
+    return '';
+  }
+  return cls.toUpperCase();
+}
+
+// Exposed for tests (loaded via <script>, so attach to window).
+if (typeof window !== 'undefined') {
+  window.notificationClass = notificationClass;
+  window.notificationTag = notificationTag;
+}
+
 function getUrlForState(state) {
   if (!stateUrls[state]) {
     return stateUrls.default;
@@ -82,19 +127,29 @@ function handleNotification(path, notification) {
     return;
   } else {
     // New notification, create element
-    const body = document.querySelector('body');
-    element = document.createElement('dialog');
+    const stack = document.getElementById('notifications');
+    element = document.createElement('div');
+    element.className = 'notification';
+    const tag = document.createElement('div');
+    tag.className = 'ntf-tag';
+    const msg = document.createElement('div');
+    msg.className = 'ntf-msg';
+    element.append(tag, msg);
     notifications[path] = element;
-    body.appendChild(element);
+    stack.appendChild(element);
   }
   if (notification && notification.state) {
-    element.className = notification.state;
-    element.innerHTML = `<p>${notification.message}</p>`;
+    const cls = notificationClass(notification.state);
+    element.className = `notification ${cls}`;
+    const tag = element.querySelector('.ntf-tag');
+    tag.textContent = notificationTag(notification.state);
+    element.querySelector('.ntf-msg').textContent = notification.message || '';
+    element.style.display = '';
   }
   if (isNotificationVisual(notification)) {
-    element.show();
+    element.style.opacity = '1';
   } else {
-    element.close();
+    element.style.opacity = '0';
     element.remove();
     delete notifications[path];
   }
