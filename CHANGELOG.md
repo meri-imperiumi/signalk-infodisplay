@@ -1,5 +1,5 @@
 # Changelog
-## [Unreleased]
+## [1.3.1] - 2026-08-25
 ### Changed
 - Switched the notification overlay from the old HSL hue ramp to the
   brighter Grafana dark-theme palette that `../signalk-status-tiles`
