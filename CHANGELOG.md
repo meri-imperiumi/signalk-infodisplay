@@ -1,4 +1,15 @@
 # Changelog
+## [Unreleased]
+### Changed
+- Switched the notification overlay from the old HSL hue ramp to the
+  brighter Grafana dark-theme palette that `../signalk-status-tiles`
+  now uses (green `#73bf69`, amber `#ffaa00`, red `#f2495c`), so the
+  two displays never disagree on color meaning. `alert` keeps its own
+  rung between green and amber as a blend of the two. Notification
+  message text is now plain white (state color lives in the border,
+  glow, and severity tag), and panels use a slightly brighter tinted
+  fill and glow, matching the status-tiles tile treatment.
+
 ## [1.3.0] - 2026-08-24
 ### Added
 - Configurable notification denylist: a list of Signal K notification

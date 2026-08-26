@@ -9,7 +9,8 @@ const path = require('node:path');
  * browser <script>, so we evaluate it in a sandbox that fakes just enough
  * of `window`/`document` for it to load, then exercise the two pure helpers
  * that decide how a Signal K notification state is rendered: the CSS class
- * (shared hue ramp with ../signalk-status-tiles) and the severity tag word.
+ * (shared Grafana palette with ../signalk-status-tiles) and the severity
+ * tag word.
  *
  * This is intentionally a smoketest, not a DOM render test: it pins the
  * state→class mapping so the HUD palette and the severity ordering can't
@@ -37,7 +38,7 @@ function loadHelpers() {
   return sandbox.window;
 }
 
-test('notificationClass maps SK states onto the status-tiles hue ramp', () => {
+test('notificationClass maps SK states onto the status-tiles palette', () => {
   const { notificationClass } = loadHelpers();
   assert.equal(notificationClass('normal'), 'normal');
   assert.equal(notificationClass('nominal'), 'nominal');

@@ -36,12 +36,15 @@
       /*
         Notifications overlay (SPEC: same HUD language as
         ../signalk-status-tiles). A fixed bottom-right stack of emissive
-        panels: dark hue-tinted fill, hue-tinted border + glow, angular
-        clip-path corners, condensed uppercase severity tag. Only
+        panels: dark color-tinted fill, color-tinted border + glow,
+        angular clip-path corners, condensed uppercase severity tag. Only
         warn/alarm/emergency pulse; alert/normal/nominal stay steady
         (alert is below the warn rung, like status-tiles' green). Colors
-        map onto the status-tiles hue ramp — green 130, alert 84,
-        amber 38, red 0 — so the two never disagree on meaning.
+        are status-tiles' Grafana dark-theme palette (STATE_COLOR in
+        st-tile-grid.js) — green #73bf69, amber #ffaa00, red #f2495c —
+        so the two never disagree on meaning. alert, which status-tiles
+        collapses onto green, keeps its own rung here: a 50/50 blend of
+        the green and the amber.
       */
       #notifications {
         position: fixed;
@@ -56,19 +59,21 @@
         font-family: "Eurostile", "Bank Gothic", "Oswald", system-ui, sans-serif;
       }
       .notification {
-        /* Defensive base hue; in practice the JS always assigns a
-         * normal/nominal/warn/alarm/emergency class, so this only shows
-         * for the brief moment before a state is set. */
-        --hue: 210;
+        /* Defensive base color (status-tiles' fallback blue); in
+         * practice the JS always assigns a normal/nominal/warn/alarm/
+         * emergency class, so this only shows for the brief moment
+         * before a state is set. */
+        --c: #6cb7f2;
+        --c-rgb: 108, 183, 242;
         position: relative;
         box-sizing: border-box;
         padding: 1.8vh 2.2vw 1.8vh 1.6vw;
-        color: hsl(var(--hue) 85% 80%);
-        background: hsl(var(--hue) 55% 10%);
-        border: 1px solid hsl(var(--hue) 70% 45%);
+        color: var(--c);
+        background: rgba(var(--c-rgb), 0.15);
+        border: 1px solid var(--c);
         box-shadow:
-          inset 0 0 0 1px hsl(var(--hue) 70% 35% / 0.35),
-          0 0 3vh hsl(var(--hue) 80% 40% / 0.22);
+          inset 0 0 0 1px rgba(var(--c-rgb), 0.4),
+          0 0 3.6vh rgba(var(--c-rgb), 0.3);
         /* Angular corner, matching the status-tiles clip-path idiom. */
         clip-path: polygon(
           0 0, calc(100% - 2vh) 0, 100% 2vh, 100% 100%,
@@ -79,41 +84,54 @@
       }
       .notification.normal,
       .notification.nominal {
-        --hue: 130;
+        /* Grafana success green, as in status-tiles' STATE_COLOR. */
+        --c: #73bf69;
+        --c-rgb: 115, 191, 105;
       }
       /*
         Signal K's ladder is nominal -> alert -> warn -> alarm ->
         emergency. `alert` is "heads up" — below a warning — so it gets
-        its own hue between green and amber (and no pulse), distinct from
-        `warn`'s amber. Mirrors status-tiles, which maps alert to green;
-        here we can't go fully green (the overlay only exists to surface
-        things worth seeing), but alert must read as milder than warn.
+        its own color between green and amber (and no pulse), distinct
+        from `warn`'s amber. Mirrors status-tiles, which maps alert to
+        green; here we can't go fully green (the overlay only exists to
+        surface things worth seeing), but alert must read as milder than
+        warn. The old hue ramp put alert at hue 84, midway between green
+        130 and amber 38; with the fixed Grafana palette the equivalent
+        is a 50/50 blend of the green #73bf69 and the amber #ffaa00.
       */
       .notification.alert {
-        --hue: 84;
+        --c: #b9b535;
+        --c-rgb: 185, 181, 53;
       }
       .notification.warn {
-        --hue: 38;
+        /* Grafana warning yellow. */
+        --c: #ffaa00;
+        --c-rgb: 255, 170, 0;
         animation: ntf-pulse 1.6s ease-in-out infinite;
       }
+      .notification.alarm,
+      .notification.emergency {
+        /* Grafana critical red. */
+        --c: #f2495c;
+        --c-rgb: 242, 73, 92;
+      }
       .notification.alarm {
-        --hue: 0;
         animation: ntf-pulse 1.1s ease-in-out infinite;
       }
       .notification.emergency {
-        --hue: 0;
         animation: ntf-pulse 0.7s ease-in-out infinite;
       }
+      /* Alpha oscillation only, like status-tiles' pulse keyframes. */
       @keyframes ntf-pulse {
         0%, 100% {
           box-shadow:
-            inset 0 0 0 1px hsl(var(--hue) 70% 40% / 0.4),
-            0 0 2.5vh hsl(var(--hue) 85% 45% / 0.25);
+            inset 0 0 0 1px rgba(var(--c-rgb), 0.5),
+            0 0 3vh rgba(var(--c-rgb), 0.32);
         }
         50% {
           box-shadow:
-            inset 0 0 0 1px hsl(var(--hue) 80% 55% / 0.6),
-            0 0 5vh hsl(var(--hue) 90% 55% / 0.45);
+            inset 0 0 0 1px rgba(var(--c-rgb), 0.75),
+            0 0 6vh rgba(var(--c-rgb), 0.55);
         }
       }
       .ntf-tag {
@@ -121,14 +139,18 @@
         font-weight: 700;
         letter-spacing: 0.18em;
         text-transform: uppercase;
-        color: hsl(var(--hue) 90% 72%);
+        color: var(--c);
         margin-bottom: 0.4vh;
       }
       .ntf-msg {
         font-size: 2.6vh;
         line-height: 1.15;
         letter-spacing: 0.04em;
-        color: hsl(var(--hue) 30% 92%);
+        /* Plain white regardless of state, like status-tiles' values:
+           the message is data, not a judgment — the border, glow, and
+           tag carry the state color, and white keeps max contrast on
+           the dim display. */
+        color: #ffffff;
         overflow-wrap: anywhere;
       }
     </style>

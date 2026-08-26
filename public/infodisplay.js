@@ -63,7 +63,7 @@ function isNotificationDenied(path) {
  * ladder is nominal -> alert -> warn -> alarm -> emergency; we keep all
  * five distinct except the `warning` spelling collapses to `warn`.
  * `alert` is "heads up" — below a warning — so it gets its own class
- * (and its own hue, between green and amber) rather than being folded
+ * (and its own color, between green and amber) rather than being folded
  * into `warn`. An empty/unknown state falls back to `normal` (green)
  * rather than asserting a color it has no right to. Exported for tests.
  */
