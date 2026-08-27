@@ -1,5 +1,5 @@
 # Changelog
-## [Unreleased]
+## [1.3.2] - 2026-08-27
 ### Added
 - Day/night mode reactivity: the display subscribes to
   `vessels.self.environment.mode` and switches the overlay palette
