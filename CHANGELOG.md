@@ -1,4 +1,46 @@
 # Changelog
+## [Unreleased]
+### Added
+- Day/night mode reactivity: the display subscribes to
+  `vessels.self.environment.mode` and switches the overlay palette
+  between day (bright, high saturation) and night (dimmed) via
+  `data-mode` on the root element. The canvas stays dark in both
+  modes; the page boots in night mode as the safe default
+- Connection status pseudo-console in the top-left corner: a
+  UTC-timestamped (`HH:MM:SSZ`) monospace log of Signal K link events
+  with `[ RETRY ]` / `[ FAIL ]` status brackets, capped to the 5
+  newest rows as a circular buffer. Only appears during connection
+  problems — it clears away entirely once the link is back up, and
+  stays hidden on a healthy first load
+- WebSocket reconnects now use exponential backoff (1s doubling per
+  failed attempt, capped at 30s) instead of a fixed 1s retry loop
+
+### Changed
+- Reworked the on-screen visuals to the ship-wide tactical UI spec:
+  strictly flat geometry with 2px pseudo-element corner brackets and
+  faint tinted borders (no more glows, gradients, or clip-path
+  corners), spec typography (uppercase tracked labels, monospace
+  tabular-numeral data values), and the shared semantic palette
+  (`.theme-green` / `.theme-teal` / `.theme-orange` / `.theme-red` /
+  `.theme-offline` classes). Notification and console panels are
+  opaque (theme tint composited over the dark base), so the dashboard
+  behind never bleeds through. Notification color rungs: green =
+  normal/nominal, teal = alert, orange = warn, red = alarm/emergency;
+  only warn/alarm/emergency pulse (border/tint alpha only)
+- Delta subscriptions now throttle with `minPeriod` where instant
+  delivery isn't required (`navigation.state` 1000ms,
+  `environment.mode` 5000ms); notifications stay `instant` so alarms
+  hit the screen immediately
+- Notification overlay sizing is now fluid with `clamp()` instead of
+  fixed `vw`/`vh` units, so it scales between phone and nav-station
+  displays
+
+### Fixed
+- Reconnecting while notifications were on screen threw a TypeError
+  (calling a nonexistent `close()` on the notification elements),
+  which could abort the subscription handshake and leave the display
+  frozen until the next reconnect
+
 ## [1.3.1] - 2026-08-25
 ### Changed
 - Switched the notification overlay from the old HSL hue ramp to the

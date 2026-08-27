@@ -97,11 +97,121 @@ function notificationTag(state) {
   return cls.toUpperCase();
 }
 
+/*
+ * Maps a notification state onto one of the tactical UI spec's theme
+ * classes (`.theme-*`), which assign the local `--theme-color`
+ * variables used by the panel framing and tint. Color rungs follow
+ * the severity ladder: green = fine (normal/nominal share it), teal =
+ * alert ("heads up", one rung below warn), orange = warn, red =
+ * alarm/emergency. Exported for tests.
+ */
+function notificationTheme(state) {
+  switch (notificationClass(state)) {
+    case 'alert':
+      return 'theme-teal';
+    case 'warn':
+      return 'theme-orange';
+    case 'alarm':
+    case 'emergency':
+      return 'theme-red';
+    default:
+      return 'theme-green';
+  }
+}
+
+/*
+ * Day/night mode (SPEC: Environment & Theme). The display passively
+ * follows the Signal K `environment.mode` delta and reflects it as
+ * `data-mode` on the root <html> element, which shifts the semantic
+ * palette (bright/saturated by day, dimmed at night; the canvas stays
+ * dark in both). Values other than day/night keep the last known
+ * mode; the page boots in night mode as the safe default.
+ * Exported for tests.
+ */
+function setEnvironmentMode(value) {
+  if (value === 'day' || value === 'night') {
+    document.documentElement.setAttribute('data-mode', value);
+  }
+}
+
+/*
+ * Connection status pseudo-console (SPEC: Terminal Logs). A
+ * 3-column (timestamp | message | status) monospace log of link
+ * events, fixed top-left. Timestamps are UTC (`HH:MM:SSZ`, SPEC:
+ * Time & Dates — local ship time or explicit UTC, never a timezone
+ * word). Works as a circular buffer: only the newest
+ * LINK_LOG_MAX_LINES rows are kept, the oldest ChildNode is removed
+ * on append so the DOM can't grow unbounded. Exported for tests.
+ */
+const LINK_LOG_MAX_LINES = 5;
+
+function formatUtcClock(date) {
+  return `${date.toISOString().slice(11, 19)}Z`;
+}
+
+function appendLinkRow(message, statusWord, statusClass) {
+  const consoleEl = document.getElementById('link-console');
+  if (!consoleEl) {
+    return;
+  }
+  const row = document.createElement('div');
+  row.className = 'console-row';
+  const ts = document.createElement('span');
+  ts.className = 'console-ts';
+  ts.textContent = formatUtcClock(new Date());
+  const msg = document.createElement('span');
+  msg.className = 'console-msg';
+  msg.textContent = message;
+  const status = document.createElement('span');
+  status.className = `console-status ${statusClass}`;
+  status.textContent = `[ ${statusWord} ]`;
+  row.append(ts, msg, status);
+  consoleEl.appendChild(row);
+  while (consoleEl.childNodes.length > LINK_LOG_MAX_LINES) {
+    consoleEl.removeChild(consoleEl.firstChild);
+  }
+}
+
+/*
+ * Empties the link console when the connection is back up: the
+ * console exists to make dropouts visible, so a healthy link means
+ * it goes away entirely (the `:empty` rule hides the frame).
+ * Exported for tests.
+ */
+function clearLinkConsole() {
+  const consoleEl = document.getElementById('link-console');
+  if (!consoleEl) {
+    return;
+  }
+  while (consoleEl.firstChild) {
+    consoleEl.removeChild(consoleEl.firstChild);
+  }
+}
+
+/*
+ * Exponential backoff for WebSocket reconnects (SPEC: Connection
+ * Resilience): 1s doubling per failed attempt, capped at 30s. The
+ * attempt counter is reset on a successful open. Exported for tests.
+ */
+const RECONNECT_BASE_DELAY = 1000;
+const RECONNECT_MAX_DELAY = 30000;
+
+function backoffDelay(failedAttempts) {
+  const delay = RECONNECT_BASE_DELAY * 2 ** Math.max(failedAttempts, 0);
+  return Math.min(delay, RECONNECT_MAX_DELAY);
+}
+
 // Exposed for tests (loaded via <script>, so attach to window).
 if (typeof window !== 'undefined') {
   window.notificationClass = notificationClass;
   window.notificationTag = notificationTag;
+  window.notificationTheme = notificationTheme;
   window.matchesNotificationPattern = matchesNotificationPattern;
+  window.setEnvironmentMode = setEnvironmentMode;
+  window.formatUtcClock = formatUtcClock;
+  window.appendLinkRow = appendLinkRow;
+  window.clearLinkConsole = clearLinkConsole;
+  window.backoffDelay = backoffDelay;
 }
 
 function getUrlForState(state) {
@@ -175,6 +285,12 @@ function isNotificationVisual(notification) {
   return true;
 }
 
+/*
+ * Live notification entries, keyed by Signal K path. Each entry caches
+ * the element plus its tag/message child refs so updates only touch
+ * textContent and the class list (SPEC: Granular DOM Updates), never
+ * re-rendering the element's HTML.
+ */
 function handleNotification(path, notification) {
   // Denylist suppresses a notification outright: the user has said they
   // don't want to see it (typically because a status-tiles tile already
@@ -183,15 +299,17 @@ function handleNotification(path, notification) {
   // was (re)loaded, tear it down so suppression takes effect immediately.
   if (isNotificationDenied(path)) {
     if (notifications[path]) {
-      notifications[path].remove();
+      notifications[path].element.remove();
       delete notifications[path];
     }
     return;
   }
+  let entry;
   let element;
   if (notifications[path]) {
     // We have an element for this
-    element = notifications[path];
+    entry = notifications[path];
+    element = entry.element;
   } else if (!isNotificationVisual(notification)) {
     // No element, but the alert doesn't have a visual component. We can skip this one
     return;
@@ -199,30 +317,30 @@ function handleNotification(path, notification) {
     // New notification, create element
     const stack = document.getElementById('notifications');
     element = document.createElement('div');
-    element.className = 'notification';
     const tag = document.createElement('div');
     tag.className = 'ntf-tag';
     const msg = document.createElement('div');
     msg.className = 'ntf-msg';
     element.append(tag, msg);
-    notifications[path] = element;
+    entry = { element, tag, msg };
+    notifications[path] = entry;
     stack.appendChild(element);
   }
   if (notification && notification.state) {
     const cls = notificationClass(notification.state);
-    element.className = `notification ${cls}`;
-    const tag = element.querySelector('.ntf-tag');
-    tag.textContent = notificationTag(notification.state);
-    element.querySelector('.ntf-msg').textContent = notification.message || '';
-    element.style.display = '';
+    element.className = `notification ${notificationTheme(notification.state)} ${cls}`;
+    entry.tag.textContent = notificationTag(notification.state);
+    entry.msg.textContent = notification.message || '';
   }
-  if (isNotificationVisual(notification)) {
-    element.style.opacity = '1';
-  } else {
-    element.style.opacity = '0';
+  if (!isNotificationVisual(notification)) {
+    // The notification lost its visual method: tear the element down
     element.remove();
     delete notifications[path];
   }
+}
+
+if (typeof window !== 'undefined') {
+  window.handleNotification = handleNotification;
 }
 
 function getConfig(callback) {
@@ -242,7 +360,7 @@ function getConfig(callback) {
       // lingering until the next notification update for it.
       Object.keys(notifications).forEach((p) => {
         if (isNotificationDenied(p)) {
-          notifications[p].remove();
+          notifications[p].element.remove();
           delete notifications[p];
         }
       });
@@ -250,24 +368,40 @@ function getConfig(callback) {
     });
 }
 
+let reconnectAttempts = 0;
+
 function connect() {
+  // Only log reconnect attempts: on a healthy load the console stays
+  // hidden — it exists to surface dropouts, not narrate the happy path
+  if (reconnectAttempts > 0) {
+    appendLinkRow('RECONNECTING', 'RETRY', 'warn');
+  }
   const socket = new WebSocket(`${(window.location.protocol === 'https:' ? 'wss' : 'ws')}://${window.location.host}/signalk/v1/stream?subscribe=none&sendCachedValues=true`);
   socket.addEventListener('open', () => {
-    // Start by clearing old notifications
-    if (notifications) {
-      Object.keys(notifications).forEach((path) => {
-        const element = notifications[path];
-        element.close();
-        element.remove();
-        delete notifications[path];
-      });
-    }
+    // Link is back: reset the backoff ladder and clear the console —
+    // a healthy connection leaves no trace on screen
+    reconnectAttempts = 0;
+    clearLinkConsole();
+    // Start by clearing stale notifications from the previous session
+    Object.keys(notifications).forEach((path) => {
+      notifications[path].element.remove();
+      delete notifications[path];
+    });
 
     socket.send(JSON.stringify({
       context: 'vessels.self',
       subscribe: [
+        // SPEC: Subscription Throttling — every subscription carries a
+        // minPeriod unless instant delivery is strictly necessary.
+        // Notifications are the exception: an anchor or MOB alarm
+        // must hit the screen the moment it fires.
         {
           path: 'navigation.state',
+          minPeriod: 1000,
+        },
+        {
+          path: 'environment.mode',
+          minPeriod: 5000,
         },
         {
           path: 'notifications.*',
@@ -290,6 +424,10 @@ function connect() {
           switchState(v.value);
           return;
         }
+        if (v.path === 'environment.mode') {
+          setEnvironmentMode(v.value);
+          return;
+        }
         if (v.path.indexOf('notifications.') === 0) {
           handleNotification(v.path, v.value);
         }
@@ -297,10 +435,14 @@ function connect() {
     });
   });
   socket.addEventListener('close', () => {
-    // Auto-reconnect in 1sec
+    // SPEC: Connection Resilience — exponential backoff, and the link
+    // console makes the dropout visible on screen
+    appendLinkRow('LINK LOST', 'FAIL', 'fail');
+    const delay = backoffDelay(reconnectAttempts);
+    reconnectAttempts += 1;
     setTimeout(() => {
       connect();
-    }, 1000);
+    }, delay);
   });
   socket.addEventListener('error', () => {
     socket.close();
