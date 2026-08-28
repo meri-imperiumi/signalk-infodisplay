@@ -1,4 +1,11 @@
 # Changelog
+## [Unreleased]
+### Changed
+- Bigger fonts in the notification (alert) panels: the state tag
+  grows from `clamp(0.7rem, 1.6vh, 0.9rem)` to
+  `clamp(0.85rem, 2vh, 1.1rem)` and the message from
+  `clamp(1rem, 2.6vh, 2rem)` to `clamp(1.25rem, 3.4vh, 2.6rem)`
+
 ## [1.3.2] - 2026-08-27
 ### Added
 - Day/night mode reactivity: the display subscribes to
