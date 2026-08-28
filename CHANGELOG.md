@@ -1,5 +1,5 @@
 # Changelog
-## [Unreleased]
+## [1.3.3] - 2026-08-27
 ### Changed
 - Bigger fonts in the notification (alert) panels: the state tag
   grows from `clamp(0.7rem, 1.6vh, 0.9rem)` to
